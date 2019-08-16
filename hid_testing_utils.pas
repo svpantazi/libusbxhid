@@ -50,12 +50,12 @@ var
   dataString:string;
 
   //procedure PrintAndCompareReport(reportIdx:integer);
-  procedure PrintAndCompareReport(reportIdx:integer;DisplayDetail:Byte);
+  function PrintAndCompareReport(reportIdx:integer;DisplayDetail:Byte):Boolean;
   function ReportChanged(reportNum:byte):boolean;
 
 implementation
 
-procedure PrintAndCompareReport(reportIdx:integer;DisplayDetail:Byte);
+function PrintAndCompareReport(reportIdx:integer;DisplayDetail:Byte):Boolean;
 var
   i:  Integer;
   Report_Changed:Boolean;
@@ -89,6 +89,7 @@ begin
   end;
   If ((DisplayDetail And $2 = $2) and Report_Changed) Or (DisplayDetail And $2 = $0) then
      WriteLn(Report_Data);
+  PrintAndCompareReport:=Report_Changed;
 end;
 
 function ReportChanged(reportNum:byte):boolean;
