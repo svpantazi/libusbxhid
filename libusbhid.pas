@@ -71,10 +71,10 @@ function  libusbhid_open_device(vid,pid:word; instanceId:Tuint8; out hid_device_
 function  libusbhid_get_report(var hid_device_context:libusbhid_context; reportType:byte; reportNum:byte; reportLen:word; out report_data:array of byte):longint;
 function  libusbhid_set_report(var hid_device_context:libusbhid_context; reportType:byte; reportNum:byte; reportLen:word; var report_data:array of byte):longint;
 
-function  libusbhid_interrupt_read(var hid_device_context:libusbhid_context; in_endpoint:byte; out data_from_device{array of byte}; const data_length:byte):longint;
+function  libusbhid_interrupt_read(var hid_device_context:libusbhid_context; in_endpoint:byte; out data_from_device{array of byte}; const data_length:byte; const timeout:dword):longint;
 {<Waits for data to be read from device. This is a blocking read and ideally belongs in a thread.}
 
-function  libusbhid_interrupt_write(var hid_device_context:libusbhid_context; out_endpoint:byte; var data_into_device:array of byte; const data_length:byte):longint;
+function  libusbhid_interrupt_write(var hid_device_context:libusbhid_context; out_endpoint:byte; var data_into_device:array of byte; const data_length:byte; const timeout:dword):longint;
 {<Writes data into the device.}
 
 procedure libusbhid_close_device(var hid_device_context:libusbhid_context);
@@ -140,23 +140,27 @@ begin
   else WriteLn('written:'+IntToStr(Result)+' bytes to device ');
 end;
 
-function libusbhid_interrupt_write(var hid_device_context:libusbhid_context; out_endpoint:byte; var data_into_device:array of byte; const data_length:byte):longint;
+function libusbhid_interrupt_write(var hid_device_context:libusbhid_context; out_endpoint:byte; var data_into_device:array of byte; const data_length:byte; const timeout:dword):longint;
 var
   return_code:longint;
 begin
-  return_code:=libusb_interrupt_transfer(hid_device_context.usb_device_handle,out_endpoint,@data_into_device, data_length, @Result,1000);
-  if return_code < 0 then WriteLn('interrupt write to usb device failed!')
+  return_code:=libusb_interrupt_transfer(hid_device_context.usb_device_handle,out_endpoint,@data_into_device, data_length, @Result,timeout);
+  if return_code < 0 then
+  begin
+    if return_code<>LIBUSB_ERROR_TIMEOUT then WriteLn('interrupt write to usb device failed!')
+  end
   else WriteLn('sent:'+IntToStr(Result)+' bytes to device ');
 end;
 
-function libusbhid_interrupt_read(var hid_device_context:libusbhid_context; in_endpoint:byte; out data_from_device{:array of byte}; const data_length:byte):longint;
+function libusbhid_interrupt_read(var hid_device_context:libusbhid_context; in_endpoint:byte; out data_from_device{:array of byte}; const data_length:byte; const timeout:dword):longint;
 var
   return_code:longint;
 begin
-  //http://libusb.sourceforge.net/api-1.0/group__syncio.html
-  //LIBUSB_ERROR_TIMEOUT
-  return_code:=libusb_interrupt_transfer(hid_device_context.usb_device_handle,in_endpoint,@data_from_device, data_length, @Result, 0);
-  if return_code < 0 then WriteLn('interrupt read from usb device failed!')
+  return_code:=libusb_interrupt_transfer(hid_device_context.usb_device_handle,in_endpoint,@data_from_device, data_length, @Result, timeout);
+  if return_code < 0 then
+  begin
+    if return_code<>LIBUSB_ERROR_TIMEOUT then WriteLn('interrupt read from usb device failed!')
+  end
   else WriteLn('received:'+IntToStr(Result)+' bytes from device ');
 end;
 
