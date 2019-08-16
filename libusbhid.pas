@@ -72,7 +72,7 @@ function  libusbhid_get_report(var hid_device_context:libusbhid_context; reportT
 function  libusbhid_set_report(var hid_device_context:libusbhid_context; reportType:byte; reportNum:byte; reportLen:word; var report_data:array of byte):longint;
 
 function  libusbhid_interrupt_read(var hid_device_context:libusbhid_context; in_endpoint:byte; out data_from_device{array of byte}; const data_length:byte; const timeout:dword):longint;
-{<Waits for data to be read from device. This is a blocking read and ideally belongs in a thread.}
+{<Waits for data to be read from device. If timeout=0 then this is a blocking read and ideally belongs in a thread.}
 
 function  libusbhid_interrupt_write(var hid_device_context:libusbhid_context; out_endpoint:byte; var data_into_device:array of byte; const data_length:byte; const timeout:dword):longint;
 {<Writes data into the device.}
