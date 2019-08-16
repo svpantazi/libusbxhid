@@ -3,7 +3,7 @@ program libusbhid_test;
 S. V. Pantazi (svpantazi@gmail.com), 2013
 
 updated
-	08/13/2019
+   08/13/2019
   08/16/2019
 }
 
@@ -36,22 +36,22 @@ begin
         // $051d, $0002 {APC UPS}
         $10CE, $EB93  {WHB04B-4 CNC Handwheel}
          ,{instance=}1,device_context) then
-  begin
-
-    reportIdx:=0; //devices often use one endpoint (commonly $81) to output data reports
-
-{read report until keypressed, then closes the device}
-    repeat
-      {interrupt reading   - for joystick or wiimote, or touchscreens, etc.
-      NOTE: program execution is blocked until data is read from device!}
-      hidReportData[reportIdx].dataLen:=libusbhid_interrupt_read(device_context,$81{endpoint},{out}hidReportData[reportIdx].hid_data,128{report length, varies by device}, {timeout=}50);
-      If hidReportData[reportIdx].dataLen > 0 Then
-         PrintAndCompareReport(reportIdx);
-
-    until KeyPressed;
-
-		libusbhid_close_device(device_context);
-	end
+    begin
+      Show_LibUSB_Messages:=False;
+      reportIdx:=0; //devices often use one endpoint (commonly $81) to output data reports
+      {read report until keypressed, then closes the device}
+      repeat
+        {interrupt reading   - for joystick or wiimote, or touchscreens, etc.
+        NOTE: program execution is blocked until data is read from device!}
+        hidReportData[reportIdx].dataLen:=libusbhid_interrupt_read(device_context,$81{endpoint},{out}hidReportData[reportIdx].hid_data,128{report length, varies by device}, {timeout=}50);
+        If hidReportData[reportIdx].dataLen > 0 Then
+           //PrintAndCompareReport(reportIdx,0);   //- Show all data of all reports
+           //PrintAndCompareReport(reportIdx,1);   //- Show Only Changed data of all reports
+           //PrintAndCompareReport(reportIdx,2);   //- Show all data only when report changed
+           PrintAndCompareReport(reportIdx,3);   //- Show Only Changed data only when report changed
+      until KeyPressed;
+      libusbhid_close_device(device_context);
+    end
   else WriteLn('unable to open device')
 end.
 
