@@ -18,7 +18,8 @@ uses
   cthreads,
   {$ENDIF}{$ENDIF}
 
-  crt,
+  keyboard,
+  
   sysutils,
 
   libusbhid,
@@ -26,6 +27,8 @@ uses
   hid_testing_utils;
 
 begin
+keyboard.InitKeyboard();
+
   if libusbhid_open_device(
         // $046D, $C216 {xbox gamepad }
         // $0000, $0001 {barcode scanner}
@@ -52,6 +55,8 @@ begin
       until KeyPressed;
       libusbhid_close_device(device_context);
     end
-  else WriteLn('unable to open device')
+  else WriteLn('unable to open device');
+  keyboard.DoneKeyboard();
+
 end.
 
