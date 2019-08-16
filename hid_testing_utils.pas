@@ -49,32 +49,47 @@ var
   hidReportData:THIDDeviceReportData;
   dataString:string;
 
-  procedure PrintAndCompareReport(reportIdx:integer);
+  //procedure PrintAndCompareReport(reportIdx:integer);
+  function PrintAndCompareReport(reportIdx:integer;DisplayDetail:Byte):Boolean;
   function ReportChanged(reportNum:byte):boolean;
 
 implementation
 
-procedure PrintAndCompareReport(reportIdx:integer);
+function PrintAndCompareReport(reportIdx:integer;DisplayDetail:Byte):Boolean;
 var
   i:  Integer;
+  Report_Changed:Boolean;
+  Report_Data:String;
 begin
-//  dataString:='';
+//DisplayDetail  0 - Show all data of all reports
+//DisplayDetail  1 - Show Only Changed data of all reports
+//DisplayDetail  2 - Show all data only when report changed
+//DisplayDetail  3 - Show Only Changed data only when report changed
 
+//  dataString:='';
+  Report_Data:='';
+  Report_Changed:=False;
   for i:=0 to hidReportData[reportIdx].dataLen-1 do
   begin
-    if hidReportData[reportIdx].hid_data[i]=hidReportData[reportIdx].hid_data_copy[i] then
+    If (hidReportData[reportIdx].hid_data[i]<>hidReportData[reportIdx].hid_data_copy[i]) Then
+      Report_Changed:=True;
+    If (hidReportData[reportIdx].hid_data[i]=hidReportData[reportIdx].hid_data_copy[i]) And (DisplayDetail And $1 = $1)then
     begin
-      Write('. ,');
+      //Write('. ,');
+      Report_Data+='. ,';
       dataString+='__';
     end
     else
     begin
-      Write(Format('%0.2s,',[hexStr(hidReportData[reportIdx].hid_data[i],2)]));
-      dataString+=hexStr(hidReportData[reportIdx].hid_data[i],2);
+      //Write(Format('%0.2s,',[hexStr(hidReportData[reportIdx].hid_data[i],2)]));
+      Report_Data+=Format('%0.2s,',[hexStr(hidReportData[reportIdx].hid_data[i],2)]);
+      dataString+=hexStr(hidReportData[reportIdx].hid_data[i],2)+' ';
       hidReportData[reportIdx].hid_data_copy[i]:=hidReportData[reportIdx].hid_data[i];
     end;
   end;
-  WriteLn();
+  If ((DisplayDetail And $2 = $2) and Report_Changed) Or (DisplayDetail And $2 = $0) then
+     WriteLn(Report_Data);
+  PrintAndCompareReport:=Report_Changed;
 end;
 
 function ReportChanged(reportNum:byte):boolean;
