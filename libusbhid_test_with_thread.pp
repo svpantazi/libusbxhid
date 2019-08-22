@@ -55,11 +55,10 @@ begin
     hidReportData[REPORT_IDX].dataLen:=libusbhid_interrupt_read(device_context,$81{endpoint},{out}hidReportData[REPORT_IDX].hid_data,WACOM_INTERRUPT_REPORT_LENGTH{128,report length, varies by device},1000);
     if hidReportData[REPORT_IDX].dataLen>0 then
     begin
-      TryEnterCriticalsection(criticalSection);
-
+{use critical section to prevent other threads read access to the shared data while writing/updating it}
+      EnterCriticalsection(criticalSection);
     	Move(hidReportData[REPORT_IDX].hid_data[5],shared_position_data.XPosition,2);
     	Move(hidReportData[REPORT_IDX].hid_data[7],shared_position_data.YPosition,2);
-
       LeaveCriticalsection(criticalSection);
     end;
     //PrintAndCompareReport(REPORT_IDX);
@@ -118,7 +117,8 @@ begin
 this is just to prove that interrupt reading in a thread and writing to device can be done concurrently}
       SetWACOMTabletMode();
 
-      TryEnterCriticalsection(criticalSection);
+{use critical section to prevent other thread write access to the shared data while reading it}
+      EnterCriticalsection(criticalSection);
       WriteLn('WACOM position  X=',shared_position_data.XPosition,', Y=',shared_position_data.YPosition);
       LeaveCriticalsection(criticalSection);
 
