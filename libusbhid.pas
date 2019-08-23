@@ -4,6 +4,7 @@ unit libusbhid;
 
 
 update log
+Aug 23, 2019 - added libusb_handle_events_timeout_completed call to allow terminatin of blocking (0 timeout) calls
 Aug 19, 2019 - conditional debug message defines and return codes for debug messages to help with debugging
 Aug 18, 2019 - added default timeout params to calls}
 
@@ -39,7 +40,7 @@ interface
 
 {$MACRO ON}
 
-{$define DEBUG_MSG} {enable this define for debug messages}
+{$define DEBUG_MSG} {enable/disable this define for debug messages on/off}
 
 uses
 {$ifdef DEBUG_MSG}
@@ -364,6 +365,9 @@ I have never been able to fully test so - beware}
 end;
 
 procedure libusbhid_close_device(var hid_device_context:libusbhid_context);
+var
+	tv:Ttimeval;
+  res:longint;
 begin
   with hid_device_context do
   begin
@@ -374,7 +378,13 @@ begin
         if (usb_interface_result=LIBUSB_SUCCESS) then
         begin
 
-          //libusb_free_transfer(transfer);{???}
+          tv.tv_sec:=0;
+          tv.tv_usec:=0;
+          res:=libusb_handle_events_timeout_completed(hid_device_context.usb_context,@tv,{completed=}nil);
+{$ifdef DEBUG_MSG}
+          if(res<>LIBUSB_SUCCESS) then DBG_MSG(Format('Cannot cancel event timeout. error result: %d',[res]))
+          else DBG_MSG('libusb_handle_events_timeout_completed');
+{$endif}
 
           usb_interface_result:=libusb_release_interface(usb_device_handle, 0);
 
