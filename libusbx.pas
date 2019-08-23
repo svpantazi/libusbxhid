@@ -16,12 +16,21 @@
 //				attachment: libusb.pp.gz 	(https://forum.lazarus.freepascal.org/index.php?action=dlattach;topic=11435.0;attach=1292)
 //
 // source modified (Apr 2013) by S. V. Pantazi (svpantazi@gmail.com)
+{
+Aug 23, 2019 - added timeval structure and libusb_handle_events_completed and libusb_handle_events_timeout_completed calls
+}
+
 //******************************************************************************    
 
 {literature links:
+	http://www.usbmadesimple.co.uk/index.html
+
+  https://www.socallinuxexpo.org/sites/default/files/presentations/scale_2017_usb.pdf
+
   http://www.beyondlogic.org/usbnutshell/usb1.shtml
 API reference
-  http://libusb.sourceforge.net/api-1.0/index.html}
+  http://libusb.sourceforge.net/api-1.0/index.html
+}
 
 {library installation on linux:
 ubuntu: sudo apt-get install libusb-1.0-0-dev
@@ -312,6 +321,7 @@ const
     USB_MAXCONFIG=8;
 
 type
+
   Plibusb_device = ^libusb_device;
   PPlibusb_device = ^Plibusb_device;//1D array of plibusb_device pointers
   PPPlibusb_device = ^PPlibusb_device;//2D array
@@ -321,27 +331,14 @@ type
 //    dummy:  uint64;
 	end;
 
-{ do not even try!
-    usbi_mutex_t=Thandle;
-  libusb_device=packed record
-    lock:     usbi_mutex_t;
-   	refcnt:   cint;
+  {https://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html}
+  Ttime_t= clong;//size differs for 32 bit OS?
+  Ptimeval= ^TTimeval;
+  Ttimeval= record
+     tv_sec: TTime_t;
+     tv_usec:clong;
+  end;
 
-   	struct libusb_context *ctx;
-
-   	bus_number,
-   	device_address,
-   	num_configurations: uint8_t;
-
-    enum libusb_speed speed;
-
-   	struct list_head list;
-
-    session_data:   uint32_t;
-   	os_priv:  char;
-   end;
-       }
-type
 	Plibusb_device_handle = ^libusb_device_handle;
   PPlibusb_device_handle = ^Plibusb_device_handle;
 	libusb_device_handle = THandle;
@@ -363,6 +360,7 @@ type
 type
     Pstructlibusb_transfer = ^structlibusb_transfer;
     libusb_transfer_cb_fn= procedure(transfer : Pstructlibusb_transfer);
+
     Plibusb_transfer_cb_fn = ^libusb_transfer_cb_fn;
     structlibusb_transfer = packed record
       dev_handle:       plibusb_device_handle;
@@ -454,8 +452,13 @@ function libusb_event_handler_active(ctx:Plibusb_context):cint;CALLING_CONV;exte
 procedure libusb_lock_event_waiters(ctx:Plibusb_context); CALLING_CONV;external LIB_NAME;
 procedure libusb_unlock_event_waiters(ctx:Plibusb_context); CALLING_CONV;external LIB_NAME;
 
-implementation
 
+{added Aug 23, 2019}
+function libusb_handle_events_completed(ctx:Plibusb_context; completed: pcint):cint;CALLING_CONV;external LIB_NAME;
+function libusb_handle_events_timeout_completed(ctx:Plibusb_context; tv:Ptimeval; completed:pcint):cint;CALLING_CONV;external LIB_NAME;
+
+
+implementation
 
 
 end.
