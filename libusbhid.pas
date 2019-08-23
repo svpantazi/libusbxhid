@@ -82,6 +82,7 @@ function  libusbhid_get_index_of_device_from_list(device_list:PPlibusb_device; v
 {<Loads all attached devices in a device list; libusb_device is an opaque record, cannot use its content, but each device gets one and can use it further to get a bus number and address of a device,
 but most importantly a device descriptor that can be checked for vid and pid of the desired device}
 
+function  libusbhid_detect_device(vid,pid:word; instanceId:Tuint8; out hid_device_context:libusbhid_context):boolean;
 function  libusbhid_open_device(vid,pid:word; instanceId:Tuint8; out hid_device_context:libusbhid_context):boolean;
 {<Opens a device instance given by the instance id (starts at 1) of a device with a given vid and pid. The instance id is necessary if multiple identical devices exist on the same system.}
 
@@ -214,6 +215,54 @@ begin
 {$ifdef DEBUG_MSG}
   else DBG_MSG(Format('%s libusbhid_interrupt_read. received: %d bytes from device ',[FormatDateTime(TIME_FORMAT,Now()),Result]));
 {$endif}
+end;
+
+function libusbhid_detect_device(vid,pid:word; instanceId:Tuint8; out hid_device_context:libusbhid_context):boolean;
+var
+  devIdx: longint;
+  usb_device_list:PPlibusb_device;
+  active_config,
+  usb_device_count: longint;
+  res:longint;
+begin
+  Result:=false;//so pessimistic...
+
+  with hid_device_context do
+  begin
+    usb_driver_detached:=false;
+
+    usb_lib_init_result:=libusb_init(@usb_context);
+
+    if usb_lib_init_result < LIBUSB_SUCCESS then
+    begin
+{$ifdef DEBUG_MSG}DBG_MSG('Cannot open libusb 1.0 library. I really need this..');{$endif}
+    end
+    else
+    begin
+      libusb_set_debug(hid_device_context.usb_context,3);
+
+      usb_device_count:=libusb_get_device_list(usb_context,@usb_device_list);
+
+{$ifdef DEBUG_MSG}DBG_MSG(Format('Found %d devices attached',[usb_device_count]));{$endif}
+
+{go through hid_device_context list and open the appropriate instance}
+      devIdx:=libusbhid_get_index_of_device_from_list(usb_device_list, vid,pid,instanceId);
+
+{$ifdef DEBUG_MSG}DBG_MSG(Format('Index of device %d:%d=%d',[vid,pid,devIdx]));{$endif}
+  {cannot use this convenience call to open multiple instance of a hid_device_context with same vid/pid
+  		usb_device_handle:=libusb_open_device_with_vid_pid(usb_context,vid,pid);}
+      if devIdx>=0 then
+      result:=true;
+
+{whatever the outcome of opening the device, the device list must be freed - or memory leaks will ensue}
+{$ifdef DEBUG_MSG} DBG_MSG(Format('Freeing device list with %d devices',[usb_device_count]));{$endif}
+
+      libusb_free_device_list(usb_device_list,{NOT usb_device_count}1{unreference? 0=no, 1=yes}); //free the list, unref the devices in it?
+
+{$ifdef DEBUG_MSG} DBG_MSG('USB device list freed. good boy!');{$endif}
+
+    end;
+  end;
 end;
 
 function libusbhid_open_device(vid,pid:word; instanceId:Tuint8; out hid_device_context:libusbhid_context):boolean;
