@@ -181,6 +181,7 @@ const LIBUSB_ERROR_NO_MEM = -11;
 const LIBUSB_ERROR_NOT_SUPPORTED = -12;
 const LIBUSB_ERROR_OTHER = -99;
 
+
 //------------------------------------------------------------------------------
 // Structures
 //------------------------------------------------------------------------------
@@ -244,7 +245,7 @@ type
 		extra_length:     cint;
 	end;
   libusb_endpoint_descriptor_array=packed array[0..0] of libusb_endpoint_descriptor;
-Plibusb_endpoint_descriptor_array = ^libusb_endpoint_descriptor_array;
+	Plibusb_endpoint_descriptor_array = ^libusb_endpoint_descriptor_array;
 
 {* A structure representing the standard USB interface descriptor. This descriptor is documented in section 9.6.5 of the USB 2.0 specification.
 All multiple-byte fields are represented in host-endian format.*}
@@ -264,7 +265,7 @@ type
 		extra_length:       cint;
 	end;
   libusb_interface_descriptor_array=packed array[0..0] of libusb_interface_descriptor;
-Plibusb_interface_descriptor_array = ^libusb_interface_descriptor_array;
+	Plibusb_interface_descriptor_array = ^libusb_interface_descriptor_array;
 
 {* A collection of alternate settings for a particular USB interface.*}
 type
@@ -379,6 +380,27 @@ type
 	    iso_packet_desc:  libusb_iso_packet_descriptor;
     end;
 
+//added Aug 27, 2019
+//http://libusb.sourceforge.net/api-1.0/group__hotplug.html#ga556d598ca379618a41bbec3597f55dcf
+	libusb_hotplug_event =cuint8;
+
+{$define 	LIBUSB_HOTPLUG_MATCH_ANY:=-1}
+
+const LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED=$01; //A device has been plugged in and is ready to use.
+const LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT=$02;    //A device has left and is no longer available.
+
+type
+  libusb_hotplug_flag=cuint8;
+
+const LIBUSB_HOTPLUG_NO_FLAGS=$00; //Default value when not using any flags.
+const LIBUSB_HOTPLUG_ENUMERATE=$01; //Arm the callback and fire it for all matching currently attached devices.
+
+type
+		libusb_hotplug_callback_fn= function(ctx:Plibusb_context; device: Plibusb_device; event:libusb_hotplug_event; user_data:pointer):cint;
+
+    libusb_hotplug_callback_handle=cint;
+    Plibusb_hotplug_callback_handle=^libusb_hotplug_callback_handle;
+
 //******************************************************************************
 //------------------------------------------------------------------------------
 // Library functions and procedures
@@ -456,6 +478,12 @@ procedure libusb_unlock_event_waiters(ctx:Plibusb_context); CALLING_CONV;externa
 {added Aug 23, 2019}
 function libusb_handle_events_completed(ctx:Plibusb_context; completed: pcint):cint;CALLING_CONV;external LIB_NAME;
 function libusb_handle_events_timeout_completed(ctx:Plibusb_context; tv:Ptimeval; completed:pcint):cint;CALLING_CONV;external LIB_NAME;
+
+
+//hotplug callback registratino added Aug 27, 2019
+
+function libusb_hotplug_register_callback(ctx:Plibusb_context; events:libusb_hotplug_event; flags:libusb_hotplug_flag; vendor_id, product_id, dev_class:cint; cb_fn:libusb_hotplug_callback_fn; user_data: pointer; handle:Plibusb_hotplug_callback_handle):cint;external LIB_NAME;
+procedure libusb_hotplug_deregister_callback(ctx:Plibusb_context; handle:Plibusb_hotplug_callback_handle);CALLING_CONV;external LIB_NAME;
 
 
 implementation
