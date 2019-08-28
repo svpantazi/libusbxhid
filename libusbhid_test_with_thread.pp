@@ -52,7 +52,7 @@ begin
     {interrupt reading   - for joystick or wiimote, or touchscreens, etc.
     NOTE: thread execution is blocked if timeout=0, until data is read from device! that makes it difficult to terminate the thread!}
     //simple devices often use one endpoint (commonly $81) to output data reports
-    hidReportData[REPORT_IDX].dataLen:=libusbhid_interrupt_read(device_context,$81{endpoint},{out}hidReportData[REPORT_IDX].hid_data,WACOM_INTERRUPT_REPORT_LENGTH{128,report length, varies by device},1000);
+    libusbhid_interrupt_read(device_context,$81{endpoint},{out}hidReportData[REPORT_IDX].hid_data,WACOM_INTERRUPT_REPORT_LENGTH{128,report length, varies by device},hidReportData[REPORT_IDX].dataLen,1000);
     if hidReportData[REPORT_IDX].dataLen>0 then
     begin
 {use critical section to prevent other threads read access to the shared data while writing/updating it}
@@ -94,6 +94,8 @@ var
   readThread:TInterruptReadThread;
 
 begin
+  InitCriticalSection(criticalSection);//remember: critical section must be initialized and finalized
+
   keyboard.InitKeyboard();
 
   if libusbhid_open_device(
@@ -131,5 +133,7 @@ this is just to prove that interrupt reading in a thread and writing to device c
   else WriteLn('unable to open device');
 
   keyboard.DoneKeyboard;
+  DoneCriticalSection(criticalSection);//remember: critical section must be initialized and finalized
+
 end.
 
