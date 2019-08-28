@@ -142,38 +142,48 @@ end;
 
 function libusbhid_interrupt_write(var hid_device_context:libusbhid_context; out_endpoint:byte; var data_into_device{array of byte}; const data_length:byte; const timeout:dword=0):longint;
 var
-  return_code:longint;
+  return_code,transfer_result:longint;
 begin
-  return_code:=libusb_interrupt_transfer(hid_device_context.usb_device_handle,out_endpoint,@data_into_device, data_length, @Result,timeout);
+  return_code:=libusb_interrupt_transfer(hid_device_context.usb_device_handle,out_endpoint,@data_into_device, data_length, @transfer_result,timeout);
 
   if return_code < LIBUSB_SUCCESS then
   begin
+    result:=return_code;
     if return_code<>LIBUSB_ERROR_TIMEOUT then WriteLn('interrupt write to usb device failed! return code: ',return_code)
 {$ifdef DEBUG_MSG}
-		else DBG_MSG(Format('%s libusbhid_interrupt_write. TIMEOUT bytes written: %d',[FormatDateTime(TIME_FORMAT,Now()),Result]))
+   else DBG_MSG(Format('%s libusbhid_interrupt_write. TIMEOUT bytes written: %d',[FormatDateTime(TIME_FORMAT,Now()),Result]))
 {$endif}
   end
+  else 
+  begin
+    result:=transfer_result;
 {$ifdef DEBUG_MSG}
-  else DBG_MSG(Format('%s libusbhid_interrupt_write. sent: %d bytes to device ',[FormatDateTime(TIME_FORMAT,Now()),Result]));
+    DBG_MSG(Format('%s libusbhid_interrupt_write. sent: %d bytes to device ',[FormatDateTime(TIME_FORMAT,Now()),Result]));
 {$endif}
+  end;
 end;
 
 function libusbhid_interrupt_read(var hid_device_context:libusbhid_context; in_endpoint:byte; out data_from_device{array of byte}; const data_length:byte; const timeout:dword=0):longint;
 var
-  return_code:longint;
+  return_code,transfer_result:longint;
 begin
-  return_code:=libusb_interrupt_transfer(hid_device_context.usb_device_handle,in_endpoint,@data_from_device, data_length, @Result, timeout);
+  return_code:=libusb_interrupt_transfer(hid_device_context.usb_device_handle,in_endpoint,@data_from_device, data_length, @transfer_result, timeout);
 
   if return_code < LIBUSB_SUCCESS then
   begin
+    result:=return_code;
     if return_code<>LIBUSB_ERROR_TIMEOUT then WriteLn('libusbhid_interrupt_read. failed! return code: ',return_code)
 {$ifdef DEBUG_MSG}
-		else DBG_MSG(Format('%s libusbhid_interrupt_read. TIMEOUT bytes read: %d',[FormatDateTime(TIME_FORMAT,Now()),Result]))
+    else DBG_MSG(Format('%s libusbhid_interrupt_read. TIMEOUT bytes read: %d',[FormatDateTime(TIME_FORMAT,Now()),Result]))
 {$endif}
   end
+  else 
+  begin
+    result:=transfer_result;
 {$ifdef DEBUG_MSG}
-  else DBG_MSG(Format('%s libusbhid_interrupt_read. received: %d bytes from device ',[FormatDateTime(TIME_FORMAT,Now()),Result]));
+    DBG_MSG(Format('%s libusbhid_interrupt_read. received: %d bytes from device ',[FormatDateTime(TIME_FORMAT,Now()),Result]));
 {$endif}
+  end;
 end;
 
 
