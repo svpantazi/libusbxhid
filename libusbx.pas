@@ -17,6 +17,7 @@
 //
 // source modified (Apr 2013) by S. V. Pantazi (svpantazi@gmail.com)
 {
+Aug 27, 2019 - added hotplug callback types and calls
 Aug 23, 2019 - added timeval structure and libusb_handle_events_completed and libusb_handle_events_timeout_completed calls
 }
 
