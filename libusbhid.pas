@@ -4,8 +4,9 @@ unit libusbhid;
 
 
 update log
+Aug 28, 2019 - added modified libusbhid_interrupt_read and libusbhid_interrupt_write parameters and return semantics - return is now the libusb result code
 Aug 23, 2019 - added libusbhid_detect_device to allow detection of device
-Aug 23, 2019 - added libusb_handle_events_timeout_completed call to allow terminatiion of blocking (0 timeout) calls
+Aug 23, 2019 - added libusb_handle_events_timeout_completed call to allow termination of blocking (0 timeout) calls
 Aug 19, 2019 - conditional debug message defines and return codes for debug messages to help with debugging
 Aug 18, 2019 - added default timeout params to calls}
 
@@ -85,8 +86,8 @@ function  libusbhid_get_index_of_device_from_list(device_list:PPlibusb_device; v
 {<Loads all attached devices in a device list; libusb_device is an opaque record, cannot use its content, but each device gets one and can use it further to get a bus number and address of a device,
 but most importantly a device descriptor that can be checked for vid and pid of the desired device}
 
-function libusbhid_detect_device(vid,pid:word; instanceId:Tuint8):boolean;
-{<Initializes libusb library, uses libusbhid_get_index_of_device_from_list to check if a particualr device is attached, then exits the library. Does NOT actually open the device.}
+function  libusbhid_detect_device(vid,pid:word; instanceId:Tuint8):boolean;
+{<Initializes libusb library, uses libusbhid_get_index_of_device_from_list to check if a particular device is attached, then exits the library. Does NOT actually open the device.}
 
 function  libusbhid_open_device(vid,pid:word; instanceId:Tuint8; out hid_device_context:libusbhid_context):boolean;
 {<Opens a device instance given by the instance id (starts at 1) of a device with a given vid and pid. The instance id is necessary if multiple identical devices exist on the same system.}
@@ -94,11 +95,13 @@ function  libusbhid_open_device(vid,pid:word; instanceId:Tuint8; out hid_device_
 function  libusbhid_get_report(var hid_device_context:libusbhid_context; reportType:byte; reportNum:byte; reportLen:word; out report_data{:array of byte}; const timeout:dword=0):longint;
 function  libusbhid_set_report(var hid_device_context:libusbhid_context; reportType:byte; reportNum:byte; reportLen:word; var report_data{:array of byte}; const timeout:dword=0):longint;
 
-function  libusbhid_interrupt_read(var hid_device_context:libusbhid_context; in_endpoint:byte; out data_from_device{array of byte}; const data_length:byte; const timeout:dword=0):longint;
-{<Waits for data to be read from device. If timeout=0 then this is a blocking read and ideally belongs in a thread.}
+function  libusbhid_interrupt_read(var hid_device_context:libusbhid_context; in_endpoint:byte; out data_from_device{array of byte}; const max_data_length:byte; out transferred_data_length:longint; const timeout:dword=0):longint;
+{<Waits for up to max_data_length bytes of data to be read from device. If timeout=0 then this is a blocking read and ideally belongs in a thread.
+Returns LIBUSB_SUCCESS or a negative error code. transferred_data_length is the length of actual transfered data.}
 
-function  libusbhid_interrupt_write(var hid_device_context:libusbhid_context; out_endpoint:byte; var data_into_device{:array of byte}; const data_length:byte; const timeout:dword=0):longint;
-{<Writes data into the device.}
+function  libusbhid_interrupt_write(var hid_device_context:libusbhid_context; out_endpoint:byte; var data_into_device{:array of byte}; const max_data_length:byte; out transferred_data_length:longint; const timeout:dword=0):longint;
+{<Writes up to max_data_length bytes of data into the device.
+Returns LIBUSB_SUCCESS or a negative error code. transferred_data_length is the length of actual transfered data}
 
 procedure libusbhid_close_device(var hid_device_context:libusbhid_context);
 
@@ -140,39 +143,31 @@ begin
 {$endif}
 end;
 
-function libusbhid_interrupt_write(var hid_device_context:libusbhid_context; out_endpoint:byte; var data_into_device{array of byte}; const data_length:byte; const timeout:dword=0):longint;
-var
-  return_code:longint;
+function libusbhid_interrupt_write(var hid_device_context:libusbhid_context; out_endpoint:byte; var data_into_device{array of byte}; const max_data_length:byte; out transferred_data_length:longint; const timeout:dword=0):longint;
 begin
-  return_code:=libusb_interrupt_transfer(hid_device_context.usb_device_handle,out_endpoint,@data_into_device, data_length, @Result,timeout);
+  Result:=libusb_interrupt_transfer(hid_device_context.usb_device_handle,out_endpoint,@data_into_device, max_data_length, @transferred_data_length,timeout);
 
-  if return_code < LIBUSB_SUCCESS then
+{$ifdef DEBUG_MSG}
+  if Result < LIBUSB_SUCCESS then
   begin
-    if return_code<>LIBUSB_ERROR_TIMEOUT then WriteLn('interrupt write to usb device failed! return code: ',return_code)
-{$ifdef DEBUG_MSG}
-		else DBG_MSG(Format('%s libusbhid_interrupt_write. TIMEOUT bytes written: %d',[FormatDateTime(TIME_FORMAT,Now()),Result]))
-{$endif}
+    if Result<>LIBUSB_ERROR_TIMEOUT then WriteLn('interrupt write to usb device failed! return code: ',Result)
+		else DBG_MSG(Format('%s libusbhid_interrupt_write. TIMEOUT bytes written: %d',[FormatDateTime(TIME_FORMAT,Now()),transferred_data_length]))
   end
-{$ifdef DEBUG_MSG}
-  else DBG_MSG(Format('%s libusbhid_interrupt_write. sent: %d bytes to device ',[FormatDateTime(TIME_FORMAT,Now()),Result]));
+  else DBG_MSG(Format('%s libusbhid_interrupt_write. sent: %d bytes to device ',[FormatDateTime(TIME_FORMAT,Now()),transferred_data_length]));
 {$endif}
 end;
 
-function libusbhid_interrupt_read(var hid_device_context:libusbhid_context; in_endpoint:byte; out data_from_device{array of byte}; const data_length:byte; const timeout:dword=0):longint;
-var
-  return_code:longint;
+function libusbhid_interrupt_read(var hid_device_context:libusbhid_context; in_endpoint:byte; out data_from_device{array of byte}; const max_data_length:byte; out transferred_data_length:longint; const timeout:dword=0):longint;
 begin
-  return_code:=libusb_interrupt_transfer(hid_device_context.usb_device_handle,in_endpoint,@data_from_device, data_length, @Result, timeout);
+  Result:=libusb_interrupt_transfer(hid_device_context.usb_device_handle,in_endpoint,@data_from_device, max_data_length, @transferred_data_length, timeout);
 
-  if return_code < LIBUSB_SUCCESS then
+{$ifdef DEBUG_MSG}
+  if Result < LIBUSB_SUCCESS then
   begin
-    if return_code<>LIBUSB_ERROR_TIMEOUT then WriteLn('libusbhid_interrupt_read. failed! return code: ',return_code)
-{$ifdef DEBUG_MSG}
-		else DBG_MSG(Format('%s libusbhid_interrupt_read. TIMEOUT bytes read: %d',[FormatDateTime(TIME_FORMAT,Now()),Result]))
-{$endif}
+    if Result<>LIBUSB_ERROR_TIMEOUT then WriteLn('libusbhid_interrupt_read. failed! return code: ',Result)
+		else DBG_MSG(Format('%s libusbhid_interrupt_read. TIMEOUT bytes read: %d',[FormatDateTime(TIME_FORMAT,Now()),transferred_data_length]))
   end
-{$ifdef DEBUG_MSG}
-  else DBG_MSG(Format('%s libusbhid_interrupt_read. received: %d bytes from device ',[FormatDateTime(TIME_FORMAT,Now()),Result]));
+  else DBG_MSG(Format('%s libusbhid_interrupt_read. received: %d bytes from device ',[FormatDateTime(TIME_FORMAT,Now()),transferred_data_length]));
 {$endif}
 end;
 
@@ -220,6 +215,7 @@ begin
     Inc(i);
   end;
 end;
+
 
 function libusbhid_detect_device(vid,pid:word; instanceId:Tuint8):boolean;
 var
