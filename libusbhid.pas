@@ -2,9 +2,8 @@ unit libusbhid;
 
 {<Implements a subset of HID calls using libusb. No other dependencies except libusb.
 
-
 update log
-Aug 28, 2019 - added modified libusbhid_interrupt_read and libusbhid_interrupt_write parameters and return semantics - return is now the libusb result code
+Aug 28, 2019 - modified libusbhid_interrupt_read and libusbhid_interrupt_write parameters and return semantics - return is now the libusb result code
 Aug 23, 2019 - added libusbhid_detect_device to allow detection of device
 Aug 23, 2019 - added libusb_handle_events_timeout_completed call to allow termination of blocking (0 timeout) calls
 Aug 19, 2019 - conditional debug message defines and return codes for debug messages to help with debugging
@@ -89,7 +88,7 @@ but most importantly a device descriptor that can be checked for vid and pid of 
 function  libusbhid_detect_device(vid,pid:word; instanceId:Tuint8):boolean;
 {<Initializes libusb library, uses libusbhid_get_index_of_device_from_list to check if a particular device is attached, then exits the library. Does NOT actually open the device.}
 
-function libusbhid_open_device(vid,pid:word; instanceId:Tuint8; out hid_device_context:libusbhid_context; Clear_Halt:Boolean):boolean;
+function  libusbhid_open_device(vid,pid:word; instanceId:Tuint8; out hid_device_context:libusbhid_context; clear_halt_81:boolean=false):boolean;
 {<Opens a device instance given by the instance id (starts at 1) of a device with a given vid and pid. The instance id is necessary if multiple identical devices exist on the same system.}
 
 function  libusbhid_get_report(var hid_device_context:libusbhid_context; reportType:byte; reportNum:byte; reportLen:word; out report_data{:array of byte}; const timeout:dword=0):longint;
@@ -260,7 +259,8 @@ begin
   end;
 end;
 
-function libusbhid_open_device(vid,pid:word; instanceId:Tuint8; out hid_device_context:libusbhid_context; Clear_Halt:Boolean):boolean;
+
+function libusbhid_open_device(vid,pid:word; instanceId:Tuint8; out hid_device_context:libusbhid_context; clear_halt_81:boolean=false):boolean;
 var
   devIdx: longint;
   usb_device_list:PPlibusb_device;
@@ -324,42 +324,41 @@ begin
 
       if usb_device_handle<>nil then
       begin
-        if clear_halt then
-        Begin
-          {kernel driver attaching problem; device may open but still be busy - this attempts to go around that -
-           I have never been able to fully test so - beware}
+        if clear_halt_81 then
+        begin
+{kernel driver attaching problem; device may open but still be busy - this attempts to go around that -
+I have never been able to fully test so - beware}
 {$ifdef DEBUG_MSG}DBG_MSG('device attempting go clear halt on ep $81');{whatever.. seems to fail everytime anyway}       {$endif}
 
           res:=libusb_clear_halt(usb_device_handle, $81);
 
-{$ifdef DEBUG_MSG}
+  {$ifdef DEBUG_MSG}
           if res=LIBUSB_SUCCESS then DBG_MSG('clear halt successful')
           else DBG_MSG(Format('clear halt failed (it''s ok, endpoint was NOT busy); error result: %d',[res]));//I've never seen this succeeding :(; eh whatever
-{$endif}
-
-(*          if libusb_auto_detach_kernel_driver(usb_device_handle,1{enable autodetach})=0 then DBG_MSG('Setting autodetach kernel driver')
-          else*)
-          begin
-//            DBG_MSG('Autodetach did not work. Checking if kernel driver is active...?');
+  {$endif}
+        end;
+(*        if libusb_auto_detach_kernel_driver(usb_device_handle,1{enable autodetach})=0 then DBG_MSG('Setting autodetach kernel driver')
+        else*)
+        begin
+//          DBG_MSG('Autodetach did not work. Checking if kernel driver is active...?');
 {device busy? try to detach kernel driver so I can claim the interface}
-            if (libusb_kernel_driver_active(usb_device_handle,0{interface number})=1) then
-            begin
+          if (libusb_kernel_driver_active(usb_device_handle,0{interface number})=1) then
+          begin
 
 {$ifdef DEBUG_MSG}DBG_MSG('device busy - driver active');        {$endif}
 
-               res:=libusb_detach_kernel_driver(usb_device_handle,0{interface number});
-               if res=LIBUSB_SUCCESS then
-               begin
-                 usb_driver_detached:=true;
+             res:=libusb_detach_kernel_driver(usb_device_handle,0{interface number});
+             if res=LIBUSB_SUCCESS then
+             begin
+							usb_driver_detached:=true;
 
 {$ifdef DEBUG_MSG}DBG_MSG ('driver detached');        {$endif}
-               end;
-            end
+             end;
+          end
 {$ifdef DEBUG_MSG}
-            else DBG_MSG('driver inactive - can claim interface');
+          else DBG_MSG('driver inactive - can claim interface');
 {$endif}
-          end;
-        end;
+				end;
 
 {$ifdef DEBUG_MSG}  DBG_MSG('getting configuration....');        {$endif}
 
@@ -412,7 +411,6 @@ begin
     end;
   end;
 end;
-
 
 procedure libusbhid_close_device(var hid_device_context:libusbhid_context);
 var
