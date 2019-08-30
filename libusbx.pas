@@ -13,7 +13,7 @@
 //       - few different USB devices based on PIC MCU
 //
 // source: https://forum.lazarus.freepascal.org/index.php?topic=11435.0
-//				attachment: libusb.pp.gz 	(https://forum.lazarus.freepascal.org/index.php?action=dlattach;topic=11435.0;attach=1292)
+//        attachment: libusb.pp.gz   (https://forum.lazarus.freepascal.org/index.php?action=dlattach;topic=11435.0;attach=1292)
 //
 // source modified (Apr 2013) by S. V. Pantazi (svpantazi@gmail.com)
 {
@@ -24,7 +24,7 @@ Aug 23, 2019 - added timeval structure and libusb_handle_events_completed and li
 //******************************************************************************    
 
 {literature links:
-	http://www.usbmadesimple.co.uk/index.html
+  http://www.usbmadesimple.co.uk/index.html
 
   https://www.socallinuxexpo.org/sites/default/files/presentations/scale_2017_usb.pdf
 
@@ -81,106 +81,106 @@ uses ctypes;{ seems simpler to use the ctypes instead of more aliases to basic p
 {(* standard USB stuff *)}
 {(* Device and/or Interface Class codes *)}
 const LIBUSB_CLASS_PER_INTERFACE = 0;
-const LIBUSB_CLASS_AUDIO = 1;
-const LIBUSB_CLASS_COMM = 2;
-const LIBUSB_CLASS_HID = 3;
-const LIBUSB_CLASS_PRINTER = 7;
-const LIBUSB_CLASS_PTP = 6;
-const LIBUSB_CLASS_MASS_STORAGE = 8;
-const LIBUSB_CLASS_HUB = 9;
-const LIBUSB_CLASS_DATA = 10;
-const LIBUSB_CLASS_WIRELESS = $e0;
-const LIBUSB_CLASS_APPLICATION = $fe;
-const LIBUSB_CLASS_VENDOR_SPEC = $ff;
+const LIBUSB_CLASS_AUDIO         = 1;
+const LIBUSB_CLASS_COMM          = 2;
+const LIBUSB_CLASS_HID           = 3;
+const LIBUSB_CLASS_PRINTER       = 7;
+const LIBUSB_CLASS_PTP           = 6;
+const LIBUSB_CLASS_MASS_STORAGE  = 8;
+const LIBUSB_CLASS_HUB           = 9;
+const LIBUSB_CLASS_DATA          = 10;
+const LIBUSB_CLASS_WIRELESS      = $e0;
+const LIBUSB_CLASS_APPLICATION   = $fe;
+const LIBUSB_CLASS_VENDOR_SPEC   = $ff;
 
 {(* Descriptor types as defined by the USB specification. *)}
-const LIBUSB_DT_DEVICE = $01;
-const LIBUSB_DT_CONFIG = $02;
-const LIBUSB_DT_STRING = $03;
+const LIBUSB_DT_DEVICE    = $01;
+const LIBUSB_DT_CONFIG    = $02;
+const LIBUSB_DT_STRING    = $03;
 const LIBUSB_DT_INTERFACE = $04;
-const LIBUSB_DT_ENDPOINT = $05;
-const LIBUSB_DT_HID = $21;
-const LIBUSB_DT_REPORT = $22;
-const LIBUSB_DT_PHYSICAL = $23;
-const LIBUSB_DT_HUB = $29;
+const LIBUSB_DT_ENDPOINT  = $05;
+const LIBUSB_DT_HID       = $21;
+const LIBUSB_DT_REPORT    = $22;
+const LIBUSB_DT_PHYSICAL  = $23;
+const LIBUSB_DT_HUB       = $29;
 
 {(* Descriptor sizes per descriptor type *)}
-const LIBUSB_DT_DEVICE_SIZE = 			18;
-const LIBUSB_DT_CONFIG_SIZE = 			9;
-const LIBUSB_DT_INTERFACE_SIZE = 		9;
-const LIBUSB_DT_ENDPOINT_SIZE = 		7;
-const LIBUSB_DT_ENDPOINT_AUDIO_SIZE = 	9;	{* Audio extension *}
-const LIBUSB_DT_HUB_NONVAR_SIZE = 		7;
-const LIBUSB_ENDPOINT_ADDRESS_MASK = 	$0f;    {* in bEndpointAddress *}
-const LIBUSB_ENDPOINT_DIR_MASK = 		$80;
+const LIBUSB_DT_DEVICE_SIZE         = 18;
+const LIBUSB_DT_CONFIG_SIZE         = 9;
+const LIBUSB_DT_INTERFACE_SIZE      = 9;
+const LIBUSB_DT_ENDPOINT_SIZE       = 7;
+const LIBUSB_DT_ENDPOINT_AUDIO_SIZE = 9;  {* Audio extension *}
+const LIBUSB_DT_HUB_NONVAR_SIZE     = 7;
+const LIBUSB_ENDPOINT_ADDRESS_MASK  = $0f;    {* in bEndpointAddress *}
+const LIBUSB_ENDPOINT_DIR_MASK      = $80;
 
 {* Endpoint direction. Values for bit 7 of the ref libusb_endpoint_descriptor.bEndpointAddress 'endpoint address' scheme. *}
-const LIBUSB_ENDPOINT_IN = $80;
+const LIBUSB_ENDPOINT_IN  = $80;
 const LIBUSB_ENDPOINT_OUT = $00;
 
-const LIBUSB_TRANSFER_TYPE_MASK = 			$03;    {* in bmAttributes *}
+const LIBUSB_TRANSFER_TYPE_MASK        = $03;    {* in bmAttributes *}
 
 {* Endpoint transfer cType. Values for bits 0:1 of the ref libusb_endpoint_descriptor.bmAttributes 'endpoint attributes' field.*}
-const LIBUSB_TRANSFER_TYPE_CONTROL = 0;
+const LIBUSB_TRANSFER_TYPE_CONTROL     = 0;
 const LIBUSB_TRANSFER_TYPE_ISOCHRONOUS = 1;
-const LIBUSB_TRANSFER_TYPE_BULK = 2;
-const LIBUSB_TRANSFER_TYPE_INTERRUPT = 3;
+const LIBUSB_TRANSFER_TYPE_BULK        = 2;
+const LIBUSB_TRANSFER_TYPE_INTERRUPT   = 3;
 
 {* Standard requests, as defined in table 9-3 of the USB2 specifications *}
-const LIBUSB_REQUEST_GET_STATUS = $00;
-const LIBUSB_REQUEST_CLEAR_FEATURE = $01;
-const LIBUSB_REQUEST_SET_FEATURE = $03;
-const LIBUSB_REQUEST_SET_ADDRESS = $05;
-const LIBUSB_REQUEST_GET_DESCRIPTOR = $06;
-const LIBUSB_REQUEST_SET_DESCRIPTOR = $07;
+const LIBUSB_REQUEST_GET_STATUS        = $00;
+const LIBUSB_REQUEST_CLEAR_FEATURE     = $01;
+const LIBUSB_REQUEST_SET_FEATURE       = $03;
+const LIBUSB_REQUEST_SET_ADDRESS       = $05;
+const LIBUSB_REQUEST_GET_DESCRIPTOR    = $06;
+const LIBUSB_REQUEST_SET_DESCRIPTOR    = $07;
 const LIBUSB_REQUEST_GET_CONFIGURATION = $08;
 const LIBUSB_REQUEST_SET_CONFIGURATION = $09;
-const LIBUSB_REQUEST_GET_INTERFACE = $0A;
-const LIBUSB_REQUEST_SET_INTERFACE = $0B;
-const LIBUSB_REQUEST_SYNCH_FRAME = $0C;
+const LIBUSB_REQUEST_GET_INTERFACE     = $0A;
+const LIBUSB_REQUEST_SET_INTERFACE     = $0B;
+const LIBUSB_REQUEST_SYNCH_FRAME       = $0C;
 
 {* Request cType bits of the ref libusb_control_setup.bmRequestType 'bmRequestType' field in control transfers. *}
-const LIBUSB_REQUEST_TYPE_STANDARD = $00 shl 5;   // $00
-const LIBUSB_REQUEST_TYPE_CLASS = $01 shl 5;      // $20
-const LIBUSB_REQUEST_TYPE_VENDOR = $02 shl 5;     // $40
-const LIBUSB_REQUEST_TYPE_RESERVED = $03 shl 5;   // $60
+const LIBUSB_REQUEST_TYPE_STANDARD = $00 shl 5;  // $00
+const LIBUSB_REQUEST_TYPE_CLASS    = $01 shl 5;  // $20
+const LIBUSB_REQUEST_TYPE_VENDOR   = $02 shl 5;  // $40
+const LIBUSB_REQUEST_TYPE_RESERVED = $03 shl 5;  // $60
 
 {* Recipient bits of the ref libusb_control_setup.bmRequestType 'bmRequestType' field in control transfers. Values 4 through 31 are reserved. *}
-const LIBUSB_RECIPIENT_DEVICE = $00;
+const LIBUSB_RECIPIENT_DEVICE    = $00;
 const LIBUSB_RECIPIENT_INTERFACE = $01;
-const LIBUSB_RECIPIENT_ENDPOINT = $02;
-const LIBUSB_RECIPIENT_OTHER = $03;
+const LIBUSB_RECIPIENT_ENDPOINT  = $02;
+const LIBUSB_RECIPIENT_OTHER     = $03;
 
-const LIBUSB_ISO_SYNC_TYPE_MASK = 		$0C;
+const LIBUSB_ISO_SYNC_TYPE_MASK  = $0C;
 
 {* Synchronization cType for isochronous endpoints. Values for bits 2:3 of the ref libusb_endpoint_descriptor.bmAttributes 'bmAttributes' field in libusb_endpoint_descriptor. *}
-const LIBUSB_ISO_SYNC_TYPE_NONE = 0;
-const LIBUSB_ISO_SYNC_TYPE_ASYNC = 1;
+const LIBUSB_ISO_SYNC_TYPE_NONE     = 0;
+const LIBUSB_ISO_SYNC_TYPE_ASYNC    = 1;
 const LIBUSB_ISO_SYNC_TYPE_ADAPTIVE = 2;
-const LIBUSB_ISO_SYNC_TYPE_SYNC = 3;
+const LIBUSB_ISO_SYNC_TYPE_SYNC     = 3;
 
-const LIBUSB_ISO_USAGE_TYPE_MASK =  $30;
+const LIBUSB_ISO_USAGE_TYPE_MASK    = $30;
 
 {* Usage cType for isochronous endpoints. Values for bits 4:5 of the ref libusb_endpoint_descriptor.bmAttributes 'bmAttributes' field in libusb_endpoint_descriptor. *}
-const LIBUSB_ISO_USAGE_TYPE_DATA = 0;
+const LIBUSB_ISO_USAGE_TYPE_DATA     = 0;
 const LIBUSB_ISO_USAGE_TYPE_FEEDBACK = 1;
 const LIBUSB_ISO_USAGE_TYPE_IMPLICIT = 2;
 
 {* Error codes. Most libusb functions result:= 0 on success or one of these codes on failure.*}
-const LIBUSB_SUCCESS = 0;
-const LIBUSB_ERROR_IO = -1;
+const LIBUSB_SUCCESS             = 0;
+const LIBUSB_ERROR_IO            = -1;
 const LIBUSB_ERROR_INVALID_PARAM = -2;
-const LIBUSB_ERROR_ACCESS = -3;
-const LIBUSB_ERROR_NO_DEVICE = -4;
-const LIBUSB_ERROR_NOT_FOUND = -5;
-const LIBUSB_ERROR_BUSY = -6;
-const LIBUSB_ERROR_TIMEOUT = -7;
-const LIBUSB_ERROR_OVERFLOW = -8;
-const LIBUSB_ERROR_PIPE = -9;
-const LIBUSB_ERROR_INTERRUPTED = -10;
-const LIBUSB_ERROR_NO_MEM = -11;
+const LIBUSB_ERROR_ACCESS        = -3;
+const LIBUSB_ERROR_NO_DEVICE     = -4;
+const LIBUSB_ERROR_NOT_FOUND     = -5;
+const LIBUSB_ERROR_BUSY          = -6;
+const LIBUSB_ERROR_TIMEOUT       = -7;
+const LIBUSB_ERROR_OVERFLOW      = -8;
+const LIBUSB_ERROR_PIPE          = -9;
+const LIBUSB_ERROR_INTERRUPTED   = -10;
+const LIBUSB_ERROR_NO_MEM        = -11;
 const LIBUSB_ERROR_NOT_SUPPORTED = -12;
-const LIBUSB_ERROR_OTHER = -99;
+const LIBUSB_ERROR_OTHER         = -99;
 
 
 //------------------------------------------------------------------------------
@@ -188,20 +188,20 @@ const LIBUSB_ERROR_OTHER = -99;
 //------------------------------------------------------------------------------
 { * Transfer status codes */}
 type libusb_transfer_status = (
-	//** Transfer completed without error. Note that this does not indicate that the entire amount of requested data was transferred. */
-	LIBUSB_TRANSFER_COMPLETED,
-	//** Transfer failed */
-	LIBUSB_TRANSFER_ERROR,
-	//** Transfer timed out */
-	LIBUSB_TRANSFER_TIMED_OUT,
-	//** Transfer was cancelled */
-	LIBUSB_TRANSFER_CANCELLED,
-	//** For bulk/interrupt endpoints: halt condition detected (endpoint stalled). For control endpoints: control request not supported. */
-	LIBUSB_TRANSFER_STALL,
-	//** Device was disconnected */
-	LIBUSB_TRANSFER_NO_DEVICE,
-	//** Device sent more data than requested */
-	LIBUSB_TRANSFER_OVERFLOW
+  //** Transfer completed without error. Note that this does not indicate that the entire amount of requested data was transferred. */
+  LIBUSB_TRANSFER_COMPLETED,
+  //** Transfer failed */
+  LIBUSB_TRANSFER_ERROR,
+  //** Transfer timed out */
+  LIBUSB_TRANSFER_TIMED_OUT,
+  //** Transfer was cancelled */
+  LIBUSB_TRANSFER_CANCELLED,
+  //** For bulk/interrupt endpoints: halt condition detected (endpoint stalled). For control endpoints: control request not supported. */
+  LIBUSB_TRANSFER_STALL,
+  //** Device was disconnected */
+  LIBUSB_TRANSFER_NO_DEVICE,
+  //** Device sent more data than requested */
+  LIBUSB_TRANSFER_OVERFLOW
 );
 
 
@@ -211,21 +211,21 @@ This descriptor is documented in section 9.6.1 of the USB 2.0 specification.
 All multiple-byte fields are represented in host-endian format.*}
 type
    libusb_device_descriptor = packed record {sizeof=18}
-		bLength,
-		bDescriptorType:    cuint8;// uint8_t;
-		bcdUSB:             cuint16;  //uint16_t;
-		bDeviceClass,
-		bDeviceSubClass,
-		bDeviceProtocol,
-		bMaxPacketSize0:    cuint8;
-		idVendor,
-		idProduct,
-		bcdDevice:          cuint16;
-		iManufacturer,
-		iProduct,
-		iSerialNumber,
-		bNumConfigurations: cuint8;
-	end;
+    bLength,
+    bDescriptorType:    cuint8;// uint8_t;
+    bcdUSB:             cuint16;  //uint16_t;
+    bDeviceClass,
+    bDeviceSubClass,
+    bDeviceProtocol,
+    bMaxPacketSize0:    cuint8;
+    idVendor,
+    idProduct,
+    bcdDevice:          cuint16;
+    iManufacturer,
+    iProduct,
+    iSerialNumber,
+    bNumConfigurations: cuint8;
+  end;
   Plibusb_device_descriptor = ^libusb_device_descriptor;
 // PPlibusb_device_descriptor = ^Plibusb_device_descriptor;
 
@@ -233,90 +233,90 @@ type
 {* A structure representing the standard USB endpoint descriptor. This descriptor is documented in section 9.6.3 of the USB 2.0 specification.
 All multiple-byte fields are represented in host-endian format.*}
 type
-	libusb_endpoint_descriptor = packed record
-		bLength,
-		bDescriptorType,
-		bEndpointAddress,
-		bmAttributes:     cuint8;
-		wMaxPacketSize:   cuint16;
-		bInterval,
-		bRefresh,
-		bSynchAddress:    cuint8;
-		extra:            pcchar;// PByte;
-		extra_length:     cint;
-	end;
+  libusb_endpoint_descriptor = packed record
+    bLength,
+    bDescriptorType,
+    bEndpointAddress,
+    bmAttributes:     cuint8;
+    wMaxPacketSize:   cuint16;
+    bInterval,
+    bRefresh,
+    bSynchAddress:    cuint8;
+    extra:            pcchar;// PByte;
+    extra_length:     cint;
+  end;
   libusb_endpoint_descriptor_array=packed array[0..0] of libusb_endpoint_descriptor;
-	Plibusb_endpoint_descriptor_array = ^libusb_endpoint_descriptor_array;
+  Plibusb_endpoint_descriptor_array = ^libusb_endpoint_descriptor_array;
 
 {* A structure representing the standard USB interface descriptor. This descriptor is documented in section 9.6.5 of the USB 2.0 specification.
 All multiple-byte fields are represented in host-endian format.*}
 type
   libusb_interface_descriptor = packed record
-		bLength,
-		bDescriptorType,
-		bInterfaceNumber,
-		bAlternateSetting,
-		bNumEndpoints,
-		bInterfaceClass,
-		bInterfaceSubClass,
-		bInterfaceProtocol,
-		iInterface:         cuint8;
-		endpoint:           Plibusb_endpoint_descriptor_array;
-		extra:              pcchar;
-		extra_length:       cint;
-	end;
+    bLength,
+    bDescriptorType,
+    bInterfaceNumber,
+    bAlternateSetting,
+    bNumEndpoints,
+    bInterfaceClass,
+    bInterfaceSubClass,
+    bInterfaceProtocol,
+    iInterface:         cuint8;
+    endpoint:           Plibusb_endpoint_descriptor_array;
+    extra:              pcchar;
+    extra_length:       cint;
+  end;
   libusb_interface_descriptor_array=packed array[0..0] of libusb_interface_descriptor;
-	Plibusb_interface_descriptor_array = ^libusb_interface_descriptor_array;
+  Plibusb_interface_descriptor_array = ^libusb_interface_descriptor_array;
 
 {* A collection of alternate settings for a particular USB interface.*}
 type
-	  libusb_interface = packed record
-		  altsetting:       Plibusb_interface_descriptor_array;
-		  num_altsetting:   cint;
-	  end;
-    libusb_interface_array=packed array[0..0] of libusb_interface;
+  libusb_interface = packed record
+    altsetting:       Plibusb_interface_descriptor_array;
+    num_altsetting:   cint;
+  end;
+  libusb_interface_array=packed array[0..0] of libusb_interface;
   Plibusb_interface_array = ^libusb_interface_array;
 
 {* A structure representing the standard USB configuration descriptor. This descriptor is documented in section 9.6.3 of the USB 2.0 specification. All multiple-byte fields are represented in host-endian format.*}
 type
-    Plibusb_config_descriptor = ^libusb_config_descriptor;
-    PPlibusb_config_descriptor = ^Plibusb_config_descriptor;
-	libusb_config_descriptor = packed record
-		bLength,
-		bDescriptorType:      cuint8;
-		wTotalLength:         cuint16;
-		bNumInterfaces,
-		bConfigurationValue,
-		iConfiguration,
-		bmAttributes,
-		bMaxPower:            cuint8;
-		usb_interface:        Plibusb_interface_array;
-		extra:                pcchar;
-		extra_length:         cint;
-	end;
+  Plibusb_config_descriptor  = ^libusb_config_descriptor;
+  PPlibusb_config_descriptor = ^Plibusb_config_descriptor;
+  libusb_config_descriptor = packed record
+    bLength,
+    bDescriptorType:      cuint8;
+    wTotalLength:         cuint16;
+    bNumInterfaces,
+    bConfigurationValue,
+    iConfiguration,
+    bmAttributes,
+    bMaxPower:            cuint8;
+    usb_interface:        Plibusb_interface_array;
+    extra:                pcchar;
+    extra_length:         cint;
+  end;
 
 { * Setup packet for control transfers. *}
 type
-	Plibusb_control_setup = ^libusb_control_setup;
-	libusb_control_setup = packed record
-		bmRequestType,
-		bRequest:         cuint8;
-		wValue,
-		wIndex,
-		wLength:          cuint16;
-	end;
+  Plibusb_control_setup = ^libusb_control_setup;
+  libusb_control_setup = packed record
+    bmRequestType,
+    bRequest:         cuint8;
+    wValue,
+    wIndex,
+    wLength:          cuint16;
+  end;
 
 const
     LIBUSB_CONTROL_SETUP_SIZE =  (SizeOf( libusb_control_setup));
 
 {* libusb *}
 type
-	 Plibusb_context = ^libusb_context;
-   PPlibusb_context = Plibusb_context;
-	 libusb_context = packed record
-	 {undefined structure}
+  Plibusb_context = ^libusb_context;
+  PPlibusb_context = Plibusb_context;
+  libusb_context = packed record
+  {undefined structure}
 //         dummy:  uint64;
-	 end;
+  end;
 
 const
     LIBUSB_PATH_MAX=512;
@@ -328,10 +328,10 @@ type
   PPlibusb_device = ^Plibusb_device;//1D array of plibusb_device pointers
   PPPlibusb_device = ^PPlibusb_device;//2D array
 
-	libusb_device = packed record
-	{undefined structure}
+  libusb_device = packed record
+  {undefined structure}
 //    dummy:  uint64;
-	end;
+  end;
 
   {https://www.gnu.org/software/libc/manual/html_node/Elapsed-Time.html}
   Ttime_t= clong;//size differs for 32 bit OS?
@@ -341,49 +341,49 @@ type
      tv_usec:clong;
   end;
 
-	Plibusb_device_handle = ^libusb_device_handle;
+  Plibusb_device_handle = ^libusb_device_handle;
   PPlibusb_device_handle = ^Plibusb_device_handle;
-	libusb_device_handle = THandle;
+  libusb_device_handle = THandle;
 
 {* libusb_transfer.flags values *}
-const LIBUSB_TRANSFER_SHORT_NOT_OK = 1 shl 0;
-const LIBUSB_TRANSFER_FREE_BUFFER = 1 shl 1;
-const LIBUSB_TRANSFER_FREE_TRANSFER = 1 shl 2;
+const LIBUSB_TRANSFER_SHORT_NOT_OK  = 1 shl 0;  //$01
+const LIBUSB_TRANSFER_FREE_BUFFER   = 1 shl 1;  //$02
+const LIBUSB_TRANSFER_FREE_TRANSFER = 1 shl 2;  //$04
 
 {*Isochronous packet descriptor. *}
 type
-    Plibusb_iso_packet_descriptor = ^libusb_iso_packet_descriptor;
-	 libusb_iso_packet_descriptor = packed record
-	 length,
-	 actual_length: cuint;
-	 status:        libusb_transfer_status;
+  Plibusb_iso_packet_descriptor = ^libusb_iso_packet_descriptor;
+  libusb_iso_packet_descriptor = packed record
+  length,
+  actual_length: cuint;
+  status:        libusb_transfer_status;
     end;
 
 type
-    Pstructlibusb_transfer = ^structlibusb_transfer;
-    libusb_transfer_cb_fn= procedure(transfer : Pstructlibusb_transfer);
+  Pstructlibusb_transfer = ^structlibusb_transfer;
+  libusb_transfer_cb_fn= procedure(transfer : Pstructlibusb_transfer);
 
-    Plibusb_transfer_cb_fn = ^libusb_transfer_cb_fn;
-    structlibusb_transfer = packed record
-      dev_handle:       plibusb_device_handle;
-	    flags:            cuint8;
-	    endpoint:         cuint8;
-	    ctype:            cuint8; // type is reserved word
-	    timeout:          cuint;
-      //stream_id:      cuint32;
-	    status:           libusb_transfer_status;
-	    length:           csize_t;
-	    actual_length:    csize_t;
-	    callback:         Plibusb_transfer_cb_fn;
-      user_data:        pointer;
-	    buffer:           pcchar;
-	    num_iso_packets:  cint;
-	    iso_packet_desc:  libusb_iso_packet_descriptor;
-    end;
+  Plibusb_transfer_cb_fn = ^libusb_transfer_cb_fn;
+  structlibusb_transfer = packed record
+    dev_handle:       plibusb_device_handle;
+    flags:            cuint8;
+    endpoint:         cuint8;
+    ctype:            cuint8; // type is reserved word
+    timeout:          cuint;
+    //stream_id:      cuint32;
+    status:           libusb_transfer_status;
+    length:           csize_t;
+    actual_length:    csize_t;
+    callback:         Plibusb_transfer_cb_fn;
+     user_data:        pointer;
+    buffer:           pcchar;
+    num_iso_packets:  cint;
+    iso_packet_desc:  libusb_iso_packet_descriptor;
+  end;
 
 //added Aug 27, 2019
 //http://libusb.sourceforge.net/api-1.0/group__hotplug.html#ga556d598ca379618a41bbec3597f55dcf
-	libusb_hotplug_event =cuint8;
+  libusb_hotplug_event =cuint8;
 
 {$define 	LIBUSB_HOTPLUG_MATCH_ANY:=-1}
 
@@ -397,7 +397,7 @@ const LIBUSB_HOTPLUG_NO_FLAGS=$00; //Default value when not using any flags.
 const LIBUSB_HOTPLUG_ENUMERATE=$01; //Arm the callback and fire it for all matching currently attached devices.
 
 type
-		libusb_hotplug_callback_fn= function(ctx:Plibusb_context; device: Plibusb_device; event:libusb_hotplug_event; user_data:pointer):cint;
+    libusb_hotplug_callback_fn= function(ctx:Plibusb_context; device: Plibusb_device; event:libusb_hotplug_event; user_data:pointer):cint;
 
     libusb_hotplug_callback_handle=cint;
     Plibusb_hotplug_callback_handle=^libusb_hotplug_callback_handle;

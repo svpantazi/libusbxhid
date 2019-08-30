@@ -81,12 +81,12 @@ type
     usb_device_handle:    Plibusb_device_handle;
   end;
 
-function  libusbhid_get_index_of_device_from_list(device_list:PPlibusb_device; vid,pid:word; instanceId:Tuint8):Tsint16;
+function  libusbhid_get_index_of_device_from_list(device_list:PPlibusb_device; vid,pid:word; instanceId:Tuint8; Out NumberOfDevices:Byte):Tsint16;
 {<Loads all attached devices in a device list; libusb_device is an opaque record, cannot use its content, but each device gets one and can use it further to get a bus number and address of a device,
 but most importantly a device descriptor that can be checked for vid and pid of the desired device}
 
-function  libusbhid_detect_device(vid,pid:word; instanceId:Tuint8):boolean;
-{<Initializes libusb library, uses libusbhid_get_index_of_device_from_list to check if a particular device is attached, then exits the library. Does NOT actually open the device.}
+function libusbhid_detect_device(vid,pid:word; instanceId:Tuint8): byte;
+{<Initializes libusb library, uses libusbhid_get_index_of_device_from_list to check if a particular device is attached}
 
 function  libusbhid_open_device(vid,pid:word; instanceId:Tuint8; out hid_device_context:libusbhid_context; clear_halt_81:boolean=false):boolean;
 {<Opens a device instance given by the instance id (starts at 1) of a device with a given vid and pid. The instance id is necessary if multiple identical devices exist on the same system.}
@@ -112,7 +112,7 @@ implementation
 
 {$define TIME_FORMAT:='h:nn:ss:zzz'}
 
-	procedure DBG_MSG(msg:string);
+  procedure DBG_MSG(msg:string);
   begin
     WriteLn('DEBUG ',msg);
   end;
@@ -121,8 +121,8 @@ implementation
 function libusbhid_get_report(var hid_device_context:libusbhid_context; reportType:byte; reportNum:byte; reportLen:word; out report_data{array of byte}; const timeout:dword=0):longint;
 begin
   Result:=libusb_control_transfer(hid_device_context.usb_device_handle,
-					    LIBUSB_CONTROL_REQUEST_TYPE_IN, HID_GET_REPORT, (reportType << 8) or reportNum,
-						  0 {interface_num}, @report_data, reportLen, timeout);
+              LIBUSB_CONTROL_REQUEST_TYPE_IN, HID_GET_REPORT, (reportType << 8) or reportNum,
+              0 {interface_num}, @report_data, reportLen, timeout);
 
 {$ifdef DEBUG_MSG}
   if Result < LIBUSB_SUCCESS then DBG_MSG(Format('control transfer from usb device failed! return code: %d',[Result]))
@@ -133,8 +133,8 @@ end;
 function libusbhid_set_report(var hid_device_context:libusbhid_context; reportType:byte; reportNum:byte; reportLen:word; var report_data{array of byte}; const timeout:dword=0):longint;
 begin
   Result:=libusb_control_transfer(hid_device_context.usb_device_handle,
-					  		LIBUSB_CONTROL_REQUEST_TYPE_OUT, HID_SET_REPORT, (reportType << 8) or reportNum,
-    						0{interface_num}, @report_data, reportLen, timeout);
+                LIBUSB_CONTROL_REQUEST_TYPE_OUT, HID_SET_REPORT, (reportType << 8) or reportNum,
+                0{interface_num}, @report_data, reportLen, timeout);
 
 {$ifdef DEBUG_MSG}
   if Result < LIBUSB_SUCCESS then DBG_MSG(Format('control transfer to usb device failed! return code: %d',[Result]))
@@ -150,7 +150,7 @@ begin
   if Result < LIBUSB_SUCCESS then
   begin
     if Result<>LIBUSB_ERROR_TIMEOUT then WriteLn('interrupt write to usb device failed! return code: ',Result)
-		else DBG_MSG(Format('%s libusbhid_interrupt_write. TIMEOUT bytes written: %d',[FormatDateTime(TIME_FORMAT,Now()),transferred_data_length]))
+    else DBG_MSG(Format('%s libusbhid_interrupt_write. TIMEOUT bytes written: %d',[FormatDateTime(TIME_FORMAT,Now()),transferred_data_length]))
   end
   else DBG_MSG(Format('%s libusbhid_interrupt_write. sent: %d bytes to device ',[FormatDateTime(TIME_FORMAT,Now()),transferred_data_length]));
 {$endif}
@@ -164,34 +164,34 @@ begin
   if Result < LIBUSB_SUCCESS then
   begin
     if Result<>LIBUSB_ERROR_TIMEOUT then WriteLn('libusbhid_interrupt_read. failed! return code: ',Result)
-		else DBG_MSG(Format('%s libusbhid_interrupt_read. TIMEOUT bytes read: %d',[FormatDateTime(TIME_FORMAT,Now()),transferred_data_length]))
+    else DBG_MSG(Format('%s libusbhid_interrupt_read. TIMEOUT bytes read: %d',[FormatDateTime(TIME_FORMAT,Now()),transferred_data_length]))
   end
   else DBG_MSG(Format('%s libusbhid_interrupt_read. received: %d bytes from device ',[FormatDateTime(TIME_FORMAT,Now()),transferred_data_length]));
 {$endif}
 end;
 
-
-function  libusbhid_get_index_of_device_from_list(device_list:PPlibusb_device; vid,pid:word; instanceId:Tuint8):Tsint16;
+function  libusbhid_get_index_of_device_from_list(device_list:PPlibusb_device; vid,pid:word; instanceId:Tuint8; Out NumberOfDevices:Byte):Tsint16;
 var
   {$ifdef DEBUG_MSG}  busNumber,devAddress:Tuint8;      {$endif}
-	usb_device:Plibusb_device;
+  usb_device:Plibusb_device;
   instanceCounter:Tuint8;
-	descriptor_result, i:Tsint16;
+  descriptor_result, i:Tsint16;
   usb_descriptor: libusb_device_descriptor;
 begin
+  NumberOfDevices:=0;
   instanceCounter:=1;
   Result:=-1;
   i:=0;
   while (device_list[i]<> nil) do
   begin
     usb_device:= device_list[i];
-		descriptor_result:=libusb_get_device_descriptor(usb_device, @usb_descriptor);
+    descriptor_result:=libusb_get_device_descriptor(usb_device, @usb_descriptor);
     {debug}//DBG_MSG('Size of usb descriptor record: ',sizeof(usb_descriptor));
-		if (descriptor_result < LIBUSB_SUCCESS) then
-		begin
+    if (descriptor_result < LIBUSB_SUCCESS) then
+    begin
 {$ifdef DEBUG_MSG}DBG_MSG('Failed to get device descriptor');{$endif}
-			Break;
-		end
+      Break;
+    end
     else
     begin
       {$ifdef DEBUG_MSG}
@@ -202,7 +202,8 @@ begin
 
       if (usb_descriptor.idVendor=vid) and (usb_descriptor.idProduct=pid) then
       begin
-        {$ifdef DEBUG_MSG}      DBG_MSG(Format('Found device with vid:pid %d:%d at idx:%d!',[vid,pid,i]));{$endif}
+        {$ifdef DEBUG_MSG}      DBG_MSG(Format('Found device with vid:pid $%x : $%x at idx:%d!',[vid,pid,i]));{$endif}
+        Inc(NumberOfDevices);
         if (instanceId-instanceCounter)=0 then
         begin
           {$ifdef DEBUG_MSG}DBG_MSG(Format('Device instance found: %d  at idx:%d!',[instanceId,i]));{$endif}
@@ -213,18 +214,20 @@ begin
     end;
     Inc(i);
   end;
+  {$ifdef DEBUG_MSG}DBG_MSG(Format('Number of devices found with vid:pid $%x : $%x = %d',[vid,pid,NumberOfDevices]));{$endif}
 end;
 
-
-function libusbhid_detect_device(vid,pid:word; instanceId:Tuint8):boolean;
+function libusbhid_detect_device(vid,pid:word; instanceId:Tuint8): byte;
 var
+  NumberOfDevices: Byte;
   devIdx: longint;
   usb_device_list:PPlibusb_device;
   usb_device_count,
   lib_init_result:longint;
   usb_context:          Plibusb_context;
 begin
-  Result:=false;//be pessimistic - assume device is NOT available...
+  NumberOfDevices:=0;
+  Result:=0;//be pessimistic - assume there are no devices attached...
   lib_init_result:=libusb_init(@usb_context);
   if lib_init_result < LIBUSB_SUCCESS then
   begin
@@ -239,13 +242,13 @@ begin
 {$ifdef DEBUG_MSG}DBG_MSG(Format('Found %d devices attached',[usb_device_count]));{$endif}
 
 {go through hid_device_context list and open the appropriate instance}
-    devIdx:=libusbhid_get_index_of_device_from_list(usb_device_list, vid,pid,instanceId);
-
+    devIdx:=libusbhid_get_index_of_device_from_list(usb_device_list, vid,pid,instanceId,NumberOfDevices);
+    
 {$ifdef DEBUG_MSG}DBG_MSG(Format('Index of device %d:%d=%d',[vid,pid,devIdx]));{$endif}
 {cannot use this convenience call to open multiple instance of a hid_device_context with same vid/pid
   	usb_device_handle:=libusb_open_device_with_vid_pid(usb_context,vid,pid);}
 
-    if devIdx>=0 then Result:=true;
+    if devIdx>=0 then Result:=NumberOfDevices;
 
 {whatever the outcome of opening the device, the device list must be freed - or memory leaks will ensue}
 {$ifdef DEBUG_MSG} DBG_MSG(Format('Freeing device list with %d devices',[usb_device_count]));{$endif}
@@ -255,13 +258,14 @@ begin
 {$ifdef DEBUG_MSG} DBG_MSG('USB device list freed. good boy!');{$endif}
 
 {we're done, must exit libusb as well}
-		libusb_exit(usb_context);
+    libusb_exit(usb_context);
   end;
 end;
 
 
 function libusbhid_open_device(vid,pid:word; instanceId:Tuint8; out hid_device_context:libusbhid_context; clear_halt_81:boolean=false):boolean;
 var
+  NumberOfDevices:Byte;
   devIdx: longint;
   usb_device_list:PPlibusb_device;
   active_config,
@@ -289,11 +293,11 @@ begin
 {$ifdef DEBUG_MSG}DBG_MSG(Format('Found %d devices attached',[usb_device_count]));{$endif}
 
 {go through hid_device_context list and open the appropriate instance}
-      devIdx:=libusbhid_get_index_of_device_from_list(usb_device_list, vid,pid,instanceId);
+      devIdx:=libusbhid_get_index_of_device_from_list(usb_device_list, vid,pid,instanceId,NumberOfDevices);
 
 {$ifdef DEBUG_MSG}DBG_MSG(Format('Index of device %d:%d=%d',[vid,pid,devIdx]));{$endif}
   {cannot use this convenience call to open multiple instance of a hid_device_context with same vid/pid
-  		usb_device_handle:=libusb_open_device_with_vid_pid(usb_context,vid,pid);}
+      usb_device_handle:=libusb_open_device_with_vid_pid(usb_context,vid,pid);}
       if devIdx>=0 then
       begin
         {SP Sep 2015 - there as a bug here - usb_device_list[devIdx] instead of @usb_device_list[devIdx]^}
@@ -347,18 +351,18 @@ I have never been able to fully test so - beware}
 
 {$ifdef DEBUG_MSG}DBG_MSG('device busy - driver active');        {$endif}
 
-             res:=libusb_detach_kernel_driver(usb_device_handle,0{interface number});
-             if res=LIBUSB_SUCCESS then
-             begin
-							usb_driver_detached:=true;
+            res:=libusb_detach_kernel_driver(usb_device_handle,0{interface number});
+            if res=LIBUSB_SUCCESS then
+            begin
+              usb_driver_detached:=true;
 
 {$ifdef DEBUG_MSG}DBG_MSG ('driver detached');        {$endif}
-             end;
+            end;
           end
 {$ifdef DEBUG_MSG}
           else DBG_MSG('driver inactive - can claim interface');
 {$endif}
-				end;
+        end;
 
 {$ifdef DEBUG_MSG}  DBG_MSG('getting configuration....');        {$endif}
 
@@ -398,11 +402,11 @@ I have never been able to fully test so - beware}
         else
         begin
           DBG_MSG ('Cannot claim interface - drat!');
-			    case usb_interface_result of
-			      LIBUSB_ERROR_NOT_FOUND:	DBG_MSG('not found');
-			      LIBUSB_ERROR_BUSY:		DBG_MSG('busy');
-			      LIBUSB_ERROR_NO_DEVICE:	DBG_MSG('no device');
-			      else DBG_MSG('for some reasons');
+          case usb_interface_result of
+            LIBUSB_ERROR_NOT_FOUND:	DBG_MSG('not found');
+            LIBUSB_ERROR_BUSY:		DBG_MSG('busy');
+            LIBUSB_ERROR_NO_DEVICE:	DBG_MSG('no device');
+            else DBG_MSG('for some reasons');
           end;
         end
 {$endif}
@@ -414,7 +418,7 @@ end;
 
 procedure libusbhid_close_device(var hid_device_context:libusbhid_context);
 var
-	tv:Ttimeval;
+  tv:Ttimeval;
   res:longint;
 begin
   with hid_device_context do
