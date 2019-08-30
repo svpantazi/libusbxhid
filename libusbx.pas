@@ -346,9 +346,9 @@ type
   libusb_device_handle = THandle;
 
 {* libusb_transfer.flags values *}
-const LIBUSB_TRANSFER_SHORT_NOT_OK  = 1 shl 0;  //$01
-const LIBUSB_TRANSFER_FREE_BUFFER   = 1 shl 1;  //$02
-const LIBUSB_TRANSFER_FREE_TRANSFER = 1 shl 2;  //$04
+const LIBUSB_TRANSFER_SHORT_NOT_OK  = 1 shl 0;  // $01
+const LIBUSB_TRANSFER_FREE_BUFFER   = 1 shl 1;  // $02
+const LIBUSB_TRANSFER_FREE_TRANSFER = 1 shl 2;  // $04
 
 {*Isochronous packet descriptor. *}
 type
