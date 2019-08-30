@@ -21,7 +21,7 @@ Aug 27, 2019 - added hotplug callback types and calls
 Aug 23, 2019 - added timeval structure and libusb_handle_events_completed and libusb_handle_events_timeout_completed calls
 }
 
-//******************************************************************************    
+//******************************************************************************
 
 {literature links:
   http://www.usbmadesimple.co.uk/index.html
@@ -43,7 +43,7 @@ centos: sudo yum install libusb-1.0-0-devel}
 
 {$ifdef windows}
   {$define CALLING_CONV:=stdcall}
-{warning - tread carefully - the win64 libusb libraries can be created to use used the cdecl call convention; 
+{warning - tread carefully - the win64 libusb libraries can be created to use used the cdecl call convention;
 on linux most likely the call conv is going to be cdecl as well so this is going to fail to compile}
 
 {$else}
@@ -385,16 +385,16 @@ type
 //http://libusb.sourceforge.net/api-1.0/group__hotplug.html#ga556d598ca379618a41bbec3597f55dcf
   libusb_hotplug_event =cuint8;
 
-{$define 	LIBUSB_HOTPLUG_MATCH_ANY:=-1}
+{$define   LIBUSB_HOTPLUG_MATCH_ANY:=-1}
 
-const LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED=$01; //A device has been plugged in and is ready to use.
-const LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT=$02;    //A device has left and is no longer available.
+const LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED = $01; //A device has been plugged in and is ready to use.
+const LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT    = $02; //A device has left and is no longer available.
 
 type
   libusb_hotplug_flag=cuint8;
 
-const LIBUSB_HOTPLUG_NO_FLAGS=$00; //Default value when not using any flags.
-const LIBUSB_HOTPLUG_ENUMERATE=$01; //Arm the callback and fire it for all matching currently attached devices.
+const LIBUSB_HOTPLUG_NO_FLAGS  = $00; //Default value when not using any flags.
+const LIBUSB_HOTPLUG_ENUMERATE = $01; //Arm the callback and fire it for all matching currently attached devices.
 
 type
     libusb_hotplug_callback_fn= function(ctx:Plibusb_context; device: Plibusb_device; event:libusb_hotplug_event; user_data:pointer):cint;
@@ -483,7 +483,8 @@ function libusb_handle_events_timeout_completed(ctx:Plibusb_context; tv:Ptimeval
 
 //hotplug callback registratino added Aug 27, 2019
 
-function libusb_hotplug_register_callback(ctx:Plibusb_context; events:libusb_hotplug_event; flags:libusb_hotplug_flag; vendor_id, product_id, dev_class:cint; cb_fn:libusb_hotplug_callback_fn; user_data: pointer; handle:Plibusb_hotplug_callback_handle):cint;external LIB_NAME;
+function libusb_hotplug_register_callback(ctx:Plibusb_context; events:libusb_hotplug_event; flags:libusb_hotplug_flag; vendor_id, product_id, dev_class:cint; cb_fn:libusb_hotplug_callback_fn; user_data: pointer;
+                                          handle:Plibusb_hotplug_callback_handle):cint;external LIB_NAME;
 procedure libusb_hotplug_deregister_callback(ctx:Plibusb_context; handle:Plibusb_hotplug_callback_handle);CALLING_CONV;external LIB_NAME;
 
 
