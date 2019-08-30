@@ -82,7 +82,7 @@ type
     usb_device_handle:    Plibusb_device_handle;
   end;
 
-function  libusbhid_get_index_of_device_from_list(device_list:PPlibusb_device; vid,pid:word; instanceId:Tuint8; out instance_count:byte):Tsint16;
+function  libusbhid_get_index_of_device_from_list(device_list:PPlibusb_device; vid,pid:word; instance_number:Tuint8; out instance_count:byte):Tsint16;
 {<Loads all attached devices in a device list; libusb_device is an opaque record, cannot use its content, but each device gets one and can use it further to get a bus number and address of a device,
 but most importantly a device descriptor that can be checked for vid and pid of the desired device}
 
@@ -173,7 +173,7 @@ begin
 {$endif}
 end;
 
-function  libusbhid_get_index_of_device_from_list(device_list:PPlibusb_device; vid,pid:word; instanceId:Tuint8; out instance_count:byte):Tsint16;
+function  libusbhid_get_index_of_device_from_list(device_list:PPlibusb_device; vid,pid:word; instance_number:Tuint8; out instance_count:byte):Tsint16;
 var
   {$ifdef DEBUG_MSG}  busNumber,devAddress:Tuint8;  {$endif}
   usb_device:Plibusb_device;
@@ -205,9 +205,9 @@ begin
       begin
         {$ifdef DEBUG_MSG}      DBG_MSG(Format('Found device with vid:pid $%x : $%x at idx:%d!',[vid,pid,i]));{$endif}
         Inc(instance_count);
-        if (instanceId-instance_count)=0 then
+        if (instance_number-instance_count)=0 then
         begin
-          {$ifdef DEBUG_MSG}DBG_MSG(Format('Device instance found: %d  at idx:%d!',[instanceId,i]));{$endif}
+          {$ifdef DEBUG_MSG}DBG_MSG(Format('Device instance found: %d  at idx:%d!',[instance_number,i]));{$endif}
           Result:=i;
         end;
       end;
