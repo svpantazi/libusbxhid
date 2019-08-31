@@ -3,9 +3,9 @@ unit libusbhid;
 {<Implements a subset of HID calls using libusb. No other dependencies except libusb.
 
 update log
-Aug 29, 2019 - libusbhid_get_index_of_device_from_list return instance count parameter (J. Richter)
+Aug 29, 2019 - libusbhid_get_index_of_device_from_list return instance count parameter (J. Richters)
 Aug 28, 2019 - modified libusbhid_interrupt_read and libusbhid_interrupt_write parameters and return semantics - return is now the libusb result code
-Aug 23, 2019 - added libusbhid_detect_device to allow detection of device (J. Richter)
+Aug 23, 2019 - added libusbhid_detect_device to allow detection of device (J. Richters)
 Aug 23, 2019 - added libusb_handle_events_timeout_completed call to allow termination of blocking (0 timeout) calls
 Aug 19, 2019 - conditional debug message defines and return codes for debug messages to help with debugging
 Aug 18, 2019 - added default timeout params to calls}
@@ -56,7 +56,7 @@ const
 LIBUSB_DEBUG_LEVEL=3;//
 
 {request type constants}
-LIBUSB_CONTROL_REQUEST_TYPE_IN = LIBUSB_ENDPOINT_IN or LIBUSB_REQUEST_TYPE_CLASS or LIBUSB_RECIPIENT_INTERFACE;
+LIBUSB_CONTROL_REQUEST_TYPE_IN  = LIBUSB_ENDPOINT_IN  or LIBUSB_REQUEST_TYPE_CLASS or LIBUSB_RECIPIENT_INTERFACE;
 LIBUSB_CONTROL_REQUEST_TYPE_OUT = LIBUSB_ENDPOINT_OUT or LIBUSB_REQUEST_TYPE_CLASS or LIBUSB_RECIPIENT_INTERFACE;
 
 {report constants}
@@ -64,8 +64,8 @@ HID_GET_REPORT = $01;
 HID_SET_REPORT = $09;
 
 {report type constants}
-HID_REPORT_TYPE_INPUT = $01;
-HID_REPORT_TYPE_OUTPUT = $02;
+HID_REPORT_TYPE_INPUT   = $01;
+HID_REPORT_TYPE_OUTPUT  = $02;
 HID_REPORT_TYPE_FEATURE = $03;
 
 type
