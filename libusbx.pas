@@ -182,6 +182,12 @@ const LIBUSB_ERROR_NO_MEM        = -11;
 const LIBUSB_ERROR_NOT_SUPPORTED = -12;
 const LIBUSB_ERROR_OTHER         = -99;
 
+{* Log Message Levels. Use with libusb_set_debug to set level of debug information output by libusb.*}
+LIBUSB_LOG_LEVEL_NONE    = 0; // no messages ever printed by the library (default)
+LIBUSB_LOG_LEVEL_ERROR   = 1; // error messages are printed to stderr
+LIBUSB_LOG_LEVEL_WARNING = 2; // warning and error messages are printed to stderr
+LIBUSB_LOG_LEVEL_INFO    = 3; // informational messages are printed to stdout, warning and error messages are printed to stderr
+LIBUSB_LOG_LEVEL_DEBUG   = 4; // debug and informational messages are printed to stdout, warnings and errors to stderr
 
 //------------------------------------------------------------------------------
 // Structures
