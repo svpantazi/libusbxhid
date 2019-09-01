@@ -53,8 +53,6 @@ uses
 
 const
 
-LIBUSB_DEBUG_LEVEL=3;//
-
 {request type constants}
 LIBUSB_CONTROL_REQUEST_TYPE_IN  = LIBUSB_ENDPOINT_IN  or LIBUSB_REQUEST_TYPE_CLASS or LIBUSB_RECIPIENT_INTERFACE;
 LIBUSB_CONTROL_REQUEST_TYPE_OUT = LIBUSB_ENDPOINT_OUT or LIBUSB_REQUEST_TYPE_CLASS or LIBUSB_RECIPIENT_INTERFACE;
@@ -78,6 +76,9 @@ type
     usb_lib_init_result:  longint;
     usb_device_handle:    Plibusb_device_handle;
   end;
+Var 
+
+LIBUSB_DEBUG_LEVEL: Integer = LIBUSB_LOG_LEVEL_INFO;
 
 function  libusbhid_get_index_of_device_from_list(device_list:PPlibusb_device; const vid,pid:word; const instance_number:byte; out instance_count:byte):longint;
 {<Loads all attached devices in a device list; libusb_device is an opaque record, cannot use its content, but each device gets one and can use it further to get a bus number and address of a device,
